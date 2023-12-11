@@ -4,7 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
-
+#include <threads/synch.h>
 /* States in a thread's life cycle. */
 enum thread_status
   {
@@ -80,6 +80,25 @@ typedef int tid_t;
    only because they are mutually exclusive: only a thread in the
    ready state is on the run queue, whereas only a thread in the
    blocked state is on a semaphore wait list. */
+/* Our Implementatio for exec and wait:
+Child process for a parent's process which does fork */
+
+struct child
+  {
+    tid_t tid;                           /* tid of the thread */
+    bool isrun;                          /* whether the child's thread is run successfully */
+    struct list_elem child_elem;         /* list of children */
+    struct semaphore sema;               /* semaphore to control waiting */
+    int store_exit;                      /* the exit status of child thread */
+  };
+/* File that the thread open */
+struct thread_file
+  {
+    int fd;
+    struct file* file;
+    struct list_elem file_elem;
+  };
+
 struct thread
   {
     /* Owned by thread.c. */
@@ -96,11 +115,24 @@ struct thread
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
-#endif
 
+#endif
+    /* Our implementation for struct thread to store useful information */
+    
+    struct list childs;                 
+    struct child * thread_child;        
+    int st_exit;                        /* Exit status */
+    struct semaphore sema;              /* Control the child process's logic, finish parent waiting for child */
+    bool success;                       /* Judge whehter the child's thread execute successfully */
+    struct thread* parent;              
+    
+    struct list files;                  /* List of opened files */
+    int max_file_fd;                    /*store max fd */
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
   };
+void acquire_lock_f(void);
+void release_lock_f(void);
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
