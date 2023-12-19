@@ -49,7 +49,7 @@ process_execute (const char *file_name)
   strlcpy (fn_copy1, file_name, PGSIZE);
 
   char *temp;
-  char *cmd = strtok_r(fn_copy0, " ", &temp); //phan tach chuoi thanh cac token theo khoang trang
+  char *cmd = strtok_r(fn_copy0, " ", &temp);
   
   tid = thread_create(cmd, PRI_DEFAULT, start_process, fn_copy1);
   palloc_free_page(fn_copy0);
